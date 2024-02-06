@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark" ng-app="batchEditorApp" style="min-width: 700px">
+<head>
+<meta charset="UTF-8">
+<title>Bulk Editor for Photoprism</title>
+
+<script src="scripts/http_ajax.googleapis.com_ajax_libs_angularjs_1.8.2_angular.js"></script>
+<link rel="stylesheet" href="css/extension.css">
+<script src="extension.js"></script>
+
+<style>
+</style>
+
+</head>
+<body ng-controller="batchEditorController" style='background: AntiqueWhite;'>
+	<div>
+		<div>
+			<h2>Photoprism Bulk Editor</h2>
+			<p></p>
+			<p>  *** Clicking on <strong>anything</strong> in the browser other than this extension will <strong>close this extension</strong>.  All entered data will be lost.  Don't know what will happen if it is in the middle of the Commit  ***</p>
+			<p></p>
+			<p><strong>Data from {{selectedItemsCount}} selected photos/videos</strong></p>
+			<p></p>
+		</div>
+		<div style="height: 400px; overflow: auto">
+			<table
+				style="width: 100%; background-color: rgb(173,216,230); border: solid rgb(50,50,50); border-collapse: collapse;">
+				<tr ng-repeat="(fieldKey, field) in selectedItemsData" style="border: solid rgb(100,100,100); border-collapse: collapse;">
+					<td>
+						<div>
+							<label id='{{fieldKey}}-label'>{{fieldKey}}</label>
+						</div>
+					</td>
+					<td>
+						<div ng-repeat="(categoryKey, category) in field" style="border: solid rgb(150,150,150 ); border-collapse: collapse;">
+							<div>
+								<label>{{categoryKey}}</label>
+								<button ng-if='categoryKey == "Common"' ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' 
+									ng-click='onAddNewCommonValue(fieldKey)' style="font-size: 10px;">Add</button>
+							</div>
+							<div style="display: flex; flex-direction: row; flex-wrap: wrap">
+								<label ng-repeat="value in category" style="display: flex; flex-direction: row; flex-wrap: nowrap; padding-left: 4px;">
+									<input type="text" size="8" ng-model='value["content"]' autofocus
+										ng-mouseover='onTextInputMouseover($event)' ng-mouseleave='onTextInputMouseover($event)'
+										ng-disabled='value["status"] != "add" || htmlPhase != 1' placeholder="<enter value>">
+									<label ng-if='value["status"] != "add"' class="mark-for-delete-switch {{fieldKey}}-delete tooltip">
+										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' 
+											ng-click='onToggleDeleteStatus(value, categoryKey, fieldKey)'>
+											<span class="slider round"></span>
+											<span ng-if='value["status"] != "delete"' class="tooltiptext ">mark for delete</span>
+											<span ng-if='value["status"] == "delete"' class="tooltiptext ">will be deleted</span>
+									</label>
+									<label ng-if='value["status"] == "add"' ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' class="remove-button tooltip">
+										<button ng-disabled='htmlPhase != 1' ng-click='onRemoveNewValue(value, categoryKey, fieldKey)'
+ 											style="background-color:transparent; border-color:transparent;">
+											<img src="img/remove-icon.png" height="12"/>
+										</button>
+										<span ng-if='value["status"] == "add"' class="tooltiptext">remove</span>
+									</label>
+								</label>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div ng-if='htmlPhase == 1'>
+		<button ng-click='onCommit()'>Commit Changes</button>
+		<button ng-click='onClose()' style="position: absolute; right: 10px;">Close</button>
+	</div>
+	<div ng-if='htmlPhase == 2 || htmlPhase == 3'>
+		<p ng-if='htmlPhase == 2'>*** updating labels takes a <strong>long</strong> time ***  - but not as long as doing it manually ...</p>
+		<p ng-if='htmlPhase == 3'>{{numberOfItemsUpdated}} photos/videos have been updated</p>
+		<button ng-disabled='htmlPhase == 2' ng-click='onReload()'>Reload with Updated Data</button>
+		<button ng-disabled='htmlPhase == 2' ng-click='onClose()' style="position: absolute; right: 10px;">Close</button>
+	</div>
+	<div ng-if='htmlPhase == "error"'>
+		<p>Program error => {{error}}<br />{{errorStack}}</p>
+	</div>
+</body>
+</html>

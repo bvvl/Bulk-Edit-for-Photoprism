@@ -1,0 +1,33 @@
+{
+	"name": "Bulk Editor for Photoprism",
+	"version": "1.0.0",
+	"description": "Edit data of selected photos/videos",
+	"manifest_version": 3,
+	"author": "bvvl",
+	"action": {
+		"default_popup": "index.html",
+		"default_title": "Bulk Editor for Photoprism"
+	},
+	"icons": {
+		"16": "img/icon_16.png",
+		"32": "img/icon_32.png",
+		"48": "img/icon_48.png",
+		"128": "img/icon_128.png"
+	},
+	"permissions": [
+		"tabs",
+		"activeTab",
+		"scripting"
+	],
+	"host_permissions": [
+		"http://localhost:2342/library/*"
+    ],
+	"content_scripts": [{
+		"js": ["scripts/content-script.js"],
+		"matches": ["http://localhost:2342/library/*"
+	]
+	}],
+	"background": {
+		"service_worker": "scripts/service-worker.js"
+	}
+}

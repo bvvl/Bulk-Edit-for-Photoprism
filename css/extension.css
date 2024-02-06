@@ -1,0 +1,123 @@
+
+input[type='text'] {
+	font-size: 14px;
+	padding: 0px;
+	padding-left: 2px;
+}
+
+:root {
+	--e-target-top: 0;
+	--e-target-left: 0;
+}
+
+.overflow-content {
+	font-size: 12px;
+ 	white-space: nowrap;
+	position: absolute;
+	top: var(--e-target-top);
+	left: var(--e-target-left);
+	width: auto;
+	height: 20px;
+	background: Black;
+	color: White;
+	border-radius: 4px;
+ 	padding: 1px;
+	z-index: 1;
+}
+
+.remove-button {
+  position: relative;
+  display: inline-block;
+/*   width: 24px; */
+  height: 15px;
+}
+
+.remove-button input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The switch - the box around the slider */
+.mark-for-delete-switch {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 15px;
+}
+
+/* Hide default HTML checkbox */
+.mark-for-delete-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 11px;
+  width: 11px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(9px);
+  -ms-transform: translateX(9px);
+  transform: translateX(9px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 15px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+	font-size: 12px;
+	visibility: hidden;
+	bottom: 100%;
+ 	left: 100%;
+ 	white-space: nowrap;
+	background-color: Black;
+	color: White;
+	text-align: center;
+	padding: 1px;
+	border-radius: 4px;
+	position: absolute;
+	z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+}

@@ -65,27 +65,34 @@ function getLabelsButton() { // from photo edit details/labels/people page
 	return document.querySelector("#tab-labels > a.v-tabs__item");
 }
 
-/**
-* @return {[string]}
-*/
-function getKeywords() { // on photo edit DETAILS page
-	return document.querySelector("#app div.p-tab-photo-details div.input-keywords textarea").value.split(/,\s*/);
-}
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /**
 * @return {[string]}
 */
-function getSubject() { // on photo edit DETAILS page
-	const subject = document.querySelector("#app div.p-tab-photo-details div.input-subject textarea").value;
-	return subject == '' ? [] : [subject];
-}
-
-/**
-* @return {[string]}
-*/
-function getArtist() { // on photo edit DETAILS page
-	const artist = document.querySelector("#app div.p-tab-photo-details div.input-artist input").value;
-	return artist == '' ? [] : [artist];
+function getDetails(field) { // on photo edit DETAILS page
+	const input = 'input-' + field.toLowerCase()
+	let value = [];
+	switch (field) {
+		case "Keywords":
+			return document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value.split(/,\s*/);
+		case "Date":
+			const day = document.querySelector(`#app div.p-tab-photo-details div.input-day input`).value;
+			const month = document.querySelector(`#app div.p-tab-photo-details div.input-month input`).value;
+			const year = document.querySelector(`#app div.p-tab-photo-details div.input-year input`).value;
+			value = `${day}` + `${months[parseInt(month) - 1]}${year}`
+			break;
+		case "Subject":
+			value = document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value;
+			break;
+		case "Artist":
+		case "Copyright":
+			value = document.querySelector(`#app div.p-tab-photo-details div.${input} input`).value;
+			break;
+		default:
+			throw `*** getDetails error - unknow field "${field}"`;
+	}
+	return value == '' ? [] : [value];
 }
 
 /**
@@ -139,28 +146,43 @@ function updateValues(userInputData, currentValues) {
 	return values;
 }
 
-async function putDetails(inputType, userInputData, oldValues) { // on photo edit DETAILS page
-	const values = updateValues(userInputData, oldValues);
+async function putDetails(field, userInputData) { // on photo edit DETAILS page
+	const oldValues = getDetails(field);
+	const values = updateValues(userInputData[field], oldValues);
 	if (oldValues.length != values.length || !oldValues.every((value, index) => value == values[index])) {
+		return field == "Date" ?
+			putDate(values.toString()) :
+			put(field.toLowerCase(), values.toString().replace(/(.),(.)/g, '$1, $2'));
+	} else {
+		return false;
+	}
+	
+	async function put(input, value) {
 		try {
 			await executeInExtension({
 				purpose: "put-data-model-value",
 				param: {
-					inputType: inputType,
-					value: values.toString().replace(/(.),(.)/g, '$1, $2'),
+					inputType: `input-${input}`,
+					value: value,
 				}
 			});
 		} catch (error) {
-			console.log("*** put() for " + inputType + " failed => ", error);
+			console.log(`*** put() for ${input} failed => `, error);
 			return false;
 		}
 		return true;
-	} else {
-		return false;
+	}
+
+	async function putDate(date) {
+		let success = false;
+		const [, day, month, year] = date.match(/(\d{1,2})([a-zA-Z]{3})(\d{4})/);
+		success |= await put('day', day);
+		const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
+		success |= await put('month', indexOf(months, month) + 1);
+		success |= await put('year', year);
+		return success;
 	}
 }
-
-
 
 /**
 * @param labels {[string]}
@@ -168,7 +190,7 @@ async function putDetails(inputType, userInputData, oldValues) { // on photo edi
 */
 async function putLabels(userInputData) { // on photo edit DETAILS page
 	let oldLabels = getLabels();
-	const newLabels = updateValues(userInputData, oldLabels);
+	const newLabels = updateValues(userInputData.Labels, oldLabels);
 	if (oldLabels.length != newLabels.length || !oldLabels.every((value, index) => value == newLabels[index])) {
 		let labelsToBeDeleted = [];
 		let labelsToBeAdded = [];
@@ -261,18 +283,26 @@ async function gatherData() {
 			"Common": [],
 			"Uncommon": [],
 		},
+		"Labels": {
+			"Common": [],
+			"Uncommon": [],
+		},
 		"Subject": {
 			"Common": [],
 			"Uncommon": [],
 		},
-		"Labels": {
+		"Date": {
 			"Common": [],
 			"Uncommon": [],
 		},
 		"Artist": {
 			"Common": [],
 			"Uncommon": [],
-		}
+		},
+		"Copyright": {
+			"Common": [],
+			"Uncommon": [],
+		},
 	};
 
 	await putInEditMode();
@@ -280,21 +310,19 @@ async function gatherData() {
 	do {  // loop through all selected items
 		numItemsProcessed++;
 
-		// get Keywords from DETAILS page
+		// get values from DETAILS page
 		getDetailsButton().click();
 		await pause(aLittleWhile);  // wait a little while after clicking detailsButton
-		mergeValuesInto("Keywords", getKeywords());
-
-		// get Subject from DETAILS page
-		mergeValuesInto("Subject", getSubject());
-
-		// get Artist from DETAILS page
-		mergeValuesInto("Artist", getArtist());
+		mergeValuesInto("Keywords");
+		mergeValuesInto("Subject");
+		mergeValuesInto("Artist");
+		mergeValuesInto("Copyright");
+		mergeValuesInto("Date");
 
 		// get Labels from LABELS page
 		getLabelsButton().click();
 		await pause(aLittleWhile);  // wait a little while after clicking detailsButton
-		mergeValuesInto("Labels", getLabels());
+		mergeValuesInto("Labels");
 
 		const nextButton = getNextButton();
 		if (nextButton && !nextButton.disabled) {
@@ -315,7 +343,8 @@ async function gatherData() {
 	* @param {string} field Keywords, Subject or Labels
 	* @param {[]} newValues
 	*/
-	function mergeValuesInto(field, newValues) {
+	function mergeValuesInto(field) {
+		newValues = field == 'Labels' ? getLabels(field) : getDetails(field);
 		if (numItemsProcessed == 1) { // first item so all values are common
 			for (const newValue of newValues) {
 				data[field].Common.push({ "content": newValue, "status": "no-change" });
@@ -350,16 +379,6 @@ async function gatherData() {
 	}
 }
 
-/**
-* @param userInputData {{"Keywords": {"Common": [],
-*									"Uncommon": []},
-*						"Subject": {"Common": [],
-*									"Uncommon": []},
-*						"Labels": {"Common": [],
-*						  			"Uncommon": []}
-*						"Artist": {"Common": [],
-*									"Uncommon": []}}
-*/
 async function commitDataChanges(userInputData) {
 	let numItemsProcessed = 0;
 	await putInEditMode();
@@ -369,29 +388,24 @@ async function commitDataChanges(userInputData) {
 		numItemsProcessed++;
 		try {
 			let detailsPageIsDirty = false;
-
+			
+			// update changes to DETAILS page
 			getDetailsButton().click();
 			await pause(aLittleWhile);  // wait a little while after clicking detailsButton
-
-			// keywords in DETAILS page
-			detailsPageIsDirty |= await putDetails('input-keywords', userInputData.Keywords, getKeywords());
-
-			// subject in DETAILS page
-			detailsPageIsDirty |= await putDetails('input-subject', userInputData.Subject, getSubject());
-
-			// artist in DETAILS page
-			detailsPageIsDirty |= await putDetails('input-artist', userInputData.Artist, getArtist());
-
+			detailsPageIsDirty |= await putDetails('Keywords', userInputData);
+			detailsPageIsDirty |= await putDetails('Subject', userInputData);
+			detailsPageIsDirty |= await putDetails('Artist', userInputData);
+			detailsPageIsDirty |= await putDetails('Copyright', userInputData);
+			detailsPageIsDirty |= await putDetails('Date', userInputData);
 			if (detailsPageIsDirty) {
 				getApplyButton().click();
 				await pause(aLittleWhile);  // wait a little while after clicking applyButton
 			}
 
+			// update changes to LABELS page
 			getLabelsButton().click();
 			await pause(aLittleWhile);  // wait a little while after clicking detailsButton
-
-			// labels in LABELS page
-			await putLabels(userInputData.Labels);
+			await putLabels(userInputData);
 
 			const nextButton = getNextButton();
 			if (nextButton && !nextButton.disabled) {

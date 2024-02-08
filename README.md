@@ -1,8 +1,8 @@
 # Bulk-Edit-for-Photoprism
-A chrome extension for modifying Photoprism photo/video metadata - keywords, labels, subject, artist.
+A chrome extension for modifying Photoprism photo/video metadata - keywords, labels, subject, date, artist and copyright.
 # Features
 - launch the extension with 1 or more photos/videos selected either from the select page or inside Photoprism's edit
-- currently supports keywords, labels, subject and artist
+- currently supports keywords, labels, subject, date, artist and copyright
 - metadata is displayed in 2 categories, Common includes values that are in all selected, Uncommon includes values included in at least one but not in all
 - common values can be added to or deleted from the fields, uncommon values can be deleted
 - see the effects of commited changes by using 'Reload with Updated Data'

@@ -16,15 +16,15 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			$scope.selectedItemsCount = isEditable ? await executeInContentScript(currentTab, { purpose: "items-count" }) : 0;
 			$scope.$apply();
 			if ($scope.selectedItemsCount > 0) {
-				$scope.disableInputs = { "Subject": false, "Artist": false };  // used to disable inputs for single value fields
+				$scope.disableInput = { "Subject": false, "Artist": false, "Copyright": false, "Date": false};  // used to disable inputs for single value fields
 				$scope.selectedItemsData = await executeInContentScript(currentTab, { purpose: "gather-data" });
 				$scope.htmlPhase = 1;
 				$scope.$apply();
 			}
 		} catch (error) {
 			$scope.htmlPhase = 'error';
-			console.log("Programming error => ", error.toString(), new Error().stack);
-			$scope.error = error
+			console.log("Programming error in gatherData => ", error.toString(), new Error().stack);
+			$scope.error = "Programming error in onCommit => " + error
 			$scope.errorStack = new Error().stack;
 			$scope.$apply();
 		}
@@ -34,12 +34,22 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 
 	//////// onClick handlers ///////////////////////////////////////////////////////////////
 
-	$scope.onCommit = async function() {  // send request off to the content-script 
-		$scope.htmlPhase = 2;
-		$scope.numberOfItemsUpdated = await executeInContentScript(currentTab, {purpose: "commit-changes", 
-																			    param: $scope.selectedItemsData});
-		$scope.htmlPhase = 3;
-		$scope.$apply();
+	$scope.onCommit = async function() {  // send request off to the content-script
+		try {
+			$scope.htmlPhase = 2;
+			$scope.numberOfItemsUpdated = await executeInContentScript(currentTab, {
+				purpose: "commit-changes",
+				param: $scope.selectedItemsData
+			});
+			$scope.htmlPhase = 3;
+			$scope.$apply();
+		} catch (error) {
+			$scope.htmlPhase = 'error';
+			console.log("Programming error in onCommit => ", error.toString(), new Error().stack);
+			$scope.error = "Programming error in onCommit => " + error
+			$scope.errorStack = new Error().stack;
+			$scope.$apply();
+		}
 	}
 
 	$scope.onReload = function() {
@@ -51,21 +61,21 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 	}
 
 	$scope.onAddNewCommonValue = function(field) {
-		if (Object.keys($scope.disableInputs).some(key => key === field)) {  // if so, mark all common and uncommon for remove
+		if (Object.keys($scope.disableInput).some(key => key === field)) {  // if so, mark all common and uncommon for remove
 			const deleteSwitches = document.querySelectorAll('label.' + field + '-delete');
 			for (const deleteSwitch of deleteSwitches) {
-				if (deleteSwitch.querySelector('span.tooltiptext')) { // 'mark for remove' is not clicked
+				if (deleteSwitch.querySelector('span.tooltiptext').innerHTML != 'will be deleted') { // 'mark for remove' is not clicked
 					deleteSwitch.querySelector('input').click();
 				}
 			}
-			$scope.disableInputs[field] = true;
+			$scope.disableInput[field] = true;
 		}
 		$scope.selectedItemsData[field].Common.push({ "content": "", "status": "add" });
 	}
 
 	$scope.onRemoveNewValue = function(value, category, field) {
-		if (Object.keys($scope.disableInputs).some(key => key === field)) {
-			$scope.disableInputs[field] = false;
+		if (Object.keys($scope.disableInput).some(key => key === field)) {
+			$scope.disableInput[field] = false;
 			const deleteSwitches = document.querySelectorAll('label.' + field + '-delete');
 			for (const deleteSwitch of deleteSwitches) {
 				const input = deleteSwitch.querySelector('input');

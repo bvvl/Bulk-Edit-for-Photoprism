@@ -15,7 +15,7 @@
 <body ng-controller="batchEditorController" style='background: AntiqueWhite;'>
 	<div>
 		<div>
-			<h2>Photoprism Bulk Editor</h2>
+			<h2>Bulk Editor for Photoprism</h2>
 			<p></p>
 			<p>  *** Clicking on <strong>anything</strong> in the browser other than this extension will <strong>close this extension</strong>.  All entered data will be lost.  Don't know what will happen if it is in the middle of the Commit  ***</p>
 			<p></p>
@@ -35,22 +35,23 @@
 						<div ng-repeat="(categoryKey, category) in field" style="border: solid rgb(150,150,150 ); border-collapse: collapse;">
 							<div>
 								<label>{{categoryKey}}</label>
-								<button ng-if='categoryKey == "Common"' ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' 
+								<button ng-if='categoryKey == "Common"' ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' 
 									ng-click='onAddNewCommonValue(fieldKey)' style="font-size: 10px;">Add</button>
+								<label ng-if='fieldKey == "Date" && categoryKey == "Common"'>  format - ddMonyyyy</label>
 							</div>
 							<div style="display: flex; flex-direction: row; flex-wrap: wrap">
 								<label ng-repeat="value in category" style="display: flex; flex-direction: row; flex-wrap: nowrap; padding-left: 4px;">
 									<input type="text" size="8" ng-model='value["content"]' autofocus
 										ng-mouseover='onTextInputMouseover($event)' ng-mouseleave='onTextInputMouseover($event)'
-										ng-disabled='value["status"] != "add" || htmlPhase != 1' placeholder="<enter value>">
+										ng-disabled='value["status"] != "add" || htmlPhase != 1' placeholder='<enter value>'>
 									<label ng-if='value["status"] != "add"' class="mark-for-delete-switch {{fieldKey}}-delete tooltip">
-										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' 
+										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' 
 											ng-click='onToggleDeleteStatus(value, categoryKey, fieldKey)'>
 											<span class="slider round"></span>
 											<span ng-if='value["status"] != "delete"' class="tooltiptext ">mark for delete</span>
 											<span ng-if='value["status"] == "delete"' class="tooltiptext ">will be deleted</span>
 									</label>
-									<label ng-if='value["status"] == "add"' ng-disabled='(htmlPhase != 1) || disableInputs.{{fieldKey}}' class="remove-button tooltip">
+									<label ng-if='value["status"] == "add"' ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' class="remove-button tooltip">
 										<button ng-disabled='htmlPhase != 1' ng-click='onRemoveNewValue(value, categoryKey, fieldKey)'
  											style="background-color:transparent; border-color:transparent;">
 											<img src="img/remove-icon.png" height="12"/>

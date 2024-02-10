@@ -37,14 +37,16 @@
 								<label>{{categoryKey}}</label>
 								<button ng-if='categoryKey == "Common"' ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' 
 									ng-click='onAddNewCommonValue(fieldKey)' style="font-size: 10px;">Add</button>
-								<label ng-if='fieldKey == "Date" && categoryKey == "Common"'>  format - ddMonyyyy  -- Dates cannot be deleted, only overwritten</label>
+								<label ng-if='fieldKey == "Keywords" && categoryKey == "Common"'> -- manually adding a new Keyword will also create a new Label (a Photoprism thing)</label>
+								<label ng-if='fieldKey == "Labels" && categoryKey == "Common"'> -- manually adding a new Label will also create a new Keyword (a Photoprism thing)</label>
+								<label ng-if='fieldKey == "Date" && categoryKey == "Common"'>  format - ddmonyyyy  -- Dates cannot be deleted, only overwritten by added value</label>
 							</div>
 							<div style="display: flex; flex-direction: row; flex-wrap: wrap">
 								<label ng-repeat="value in category" style="display: flex; flex-direction: row; flex-wrap: nowrap; padding-left: 4px;">
 									<input type="text" size="8" ng-model='value["content"]' autofocus
 										ng-mouseover='onTextInputMouseover($event)' ng-mouseleave='onTextInputMouseover($event)'
 										ng-disabled='value["status"] != "add" || htmlPhase != 1' placeholder='<enter value>'>
-									<label ng-if='value["status"] != "add"' class="mark-for-delete-switch {{fieldKey}}-delete tooltip">
+									<label ng-if='value["status"] != "add"' ng-hide='fieldKey == "Date" && value["status"] == "no-change"' class="mark-for-delete-switch {{fieldKey}}-delete tooltip">
 										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}'
 											ng-click='onToggleDeleteStatus(value, categoryKey, fieldKey)'>
 											<span class="slider round"></span>
@@ -71,7 +73,8 @@
 		<button ng-click='onClose()' style="position: absolute; right: 10px;">Close</button>
 	</div>
 	<div ng-if='htmlPhase == 2 || htmlPhase == 3'>
-		<p ng-if='htmlPhase == 2'>*** updating labels takes a <strong>long</strong> time ***  - but not as long as doing it manually ...</p>
+		<p ng-if='htmlPhase == 2'>*** updating labels takes a <strong>long</strong> time ***  - but not as long as doing it manually ...<br 
+				>*** wait for Reload and Close buttons to be enabled</p>
 		<p ng-if='htmlPhase == 3'>{{numberOfItemsUpdated}} photos/videos have been updated</p>
 		<button ng-disabled='htmlPhase == 2' ng-click='onReload()'>Reload with Updated Data</button>
 		<button ng-disabled='htmlPhase == 2' ng-click='onClose()' style="position: absolute; right: 10px;">Close</button>

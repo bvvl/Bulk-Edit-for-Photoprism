@@ -75,7 +75,8 @@ function getDetails(field) { // on photo edit DETAILS page
 	let value = [];
 	switch (field) {
 		case "Keywords":
-			return document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value.split(/,\s*/);
+			const values = document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value.split(/,\s*/);
+			return values[0] == '' ? [] : values;
 		case "Date":
 			const day = document.querySelector(`#app div.p-tab-photo-details div.input-day input`).value;
 			const month = document.querySelector(`#app div.p-tab-photo-details div.input-month input`).value;

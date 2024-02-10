@@ -36,13 +36,17 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 
 	$scope.onCommit = async function() {  // send request off to the content-script
 		try {
-			$scope.htmlPhase = 2;
-			$scope.numberOfItemsUpdated = await executeInContentScript(currentTab, {
-				purpose: "commit-changes",
-				param: $scope.selectedItemsData
-			});
-			$scope.htmlPhase = 3;
-			$scope.$apply();
+			if (isValidDate()) {
+				$scope.htmlPhase = 2;
+				$scope.numberOfItemsUpdated = await executeInContentScript(currentTab, {
+					purpose: "commit-changes",
+					param: $scope.selectedItemsData
+				});
+				$scope.htmlPhase = 3;
+				$scope.$apply();
+			} else {
+				alert ('Invalid date')
+			}
 		} catch (error) {
 			$scope.htmlPhase = 'error';
 			console.log("Programming error in onCommit => ", error.toString(), new Error().stack);
@@ -50,6 +54,23 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			$scope.errorStack = new Error().stack;
 			$scope.$apply();
 		}
+	}
+	
+	function isValidDate() {
+		for (date of $scope.selectedItemsData.Date.Common) {
+			if (date.status == "add") {
+				if (date.content.trim().match(/^\d{1,2} *[a-zA-Z]{3} *\d{4}$/)) {
+					const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+					const [, day, month, year] = date.content.match(/(\d{1,2}) *([a-zA-Z]{3}) *(\d{4})/);
+					const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
+					dateObject = new Date(year.toString() + '/' + (indexOf(months, month) + 1).toString() + '/' + day.toString());
+					return dateObject == "Invalid Date" ? false : true;
+				} else {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	$scope.onReload = function() {
@@ -61,10 +82,10 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 	}
 
 	$scope.onAddNewCommonValue = function(field) {
-		if (Object.keys($scope.disableInput).some(key => key === field)) {  // if so, mark all common and uncommon for remove
+		if (Object.keys($scope.disableInput).some(key => key === field)) {  // if so, mark all common and uncommon for delete
 			const deleteSwitches = document.querySelectorAll('label.' + field + '-delete');
 			for (const deleteSwitch of deleteSwitches) {
-				if (deleteSwitch.querySelector('span.tooltiptext').innerHTML != 'will be deleted') { // 'mark for remove' is not clicked
+				if (deleteSwitch.querySelector('span.tooltiptext').innerHTML != 'will be deleted') { // 'mark for delete' is not clicked
 					deleteSwitch.querySelector('input').click();
 				}
 			}

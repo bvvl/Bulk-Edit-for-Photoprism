@@ -37,7 +37,7 @@
 								<label>{{categoryKey}}</label>
 								<button ng-if='categoryKey == "Common"' ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' 
 									ng-click='onAddNewCommonValue(fieldKey)' style="font-size: 10px;">Add</button>
-								<label ng-if='fieldKey == "Date" && categoryKey == "Common"'>  format - ddMonyyyy</label>
+								<label ng-if='fieldKey == "Date" && categoryKey == "Common"'>  format - ddMonyyyy  -- Dates cannot be deleted, only overwritten</label>
 							</div>
 							<div style="display: flex; flex-direction: row; flex-wrap: wrap">
 								<label ng-repeat="value in category" style="display: flex; flex-direction: row; flex-wrap: nowrap; padding-left: 4px;">
@@ -45,7 +45,7 @@
 										ng-mouseover='onTextInputMouseover($event)' ng-mouseleave='onTextInputMouseover($event)'
 										ng-disabled='value["status"] != "add" || htmlPhase != 1' placeholder='<enter value>'>
 									<label ng-if='value["status"] != "add"' class="mark-for-delete-switch {{fieldKey}}-delete tooltip">
-										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}' 
+										<input type="checkbox" ng-disabled='(htmlPhase != 1) || disableInput.{{fieldKey}}'
 											ng-click='onToggleDeleteStatus(value, categoryKey, fieldKey)'>
 											<span class="slider round"></span>
 											<span ng-if='value["status"] != "delete"' class="tooltiptext ">mark for delete</span>

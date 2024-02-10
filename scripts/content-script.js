@@ -1,5 +1,5 @@
 const pause = async (msec) => new Promise((resolve) => setTimeout(resolve, msec));
-const aLittleWhile = 20; // msec
+const aLittleWhile = 30; // msec
 
 
 chrome.runtime.onMessage.addListener(
@@ -175,11 +175,15 @@ async function putDetails(field, userInputData) { // on photo edit DETAILS page
 
 	async function putDate(date) {
 		let success = false;
-		const [, day, month, year] = date.match(/(\d{1,2})([a-zA-Z]{3})(\d{4})/);
-		success |= await put('day', day);
-		const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
-		success |= await put('month', indexOf(months, month) + 1);
-		success |= await put('year', year);
+		if (date != "") { // Date value is empty but Phtoprism doesn't allow setting date to nothing'
+			const [, day, month, year] = date.match(/(\d{1,2}) *([a-zA-Z]{3}) *(\d{4})/);
+			success |= await put('day', day);
+			const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
+			success |= await put('month', indexOf(months, month) + 1);
+			success |= await put('year', year);
+		} else {
+			success = true;
+		}
 		return success;
 	}
 }

@@ -69,7 +69,7 @@
 		</div>
 	</div>
 	<div ng-if='htmlPhase == 1'>
-		<button ng-click='onCommit()'>Commit Changes</button>
+		<button ng-disabled='dirtyCount == 0' ng-click='onCommit()'>Commit Changes</button>
 		<button ng-click='onClose()' style="position: absolute; right: 10px;">Close</button>
 	</div>
 	<div ng-if='htmlPhase == 2 || htmlPhase == 3'>

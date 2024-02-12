@@ -4,10 +4,11 @@ const angularModule = angular.module('batchEditorApp', []);
 angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 
 	let currentTab;  // will be set in gatherData()
-
+	
 	$scope.gatherData = async function () {
 		try {
 			$scope.htmlPhase = 0;
+			$scope.dirtyCount = 0;
 			if (!currentTab) {
 				[currentTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
 			}
@@ -16,6 +17,7 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			$scope.selectedItemsCount = isEditable ? await executeInContentScript(currentTab, { purpose: "items-count" }) : 0;
 			$scope.$apply();
 			if ($scope.selectedItemsCount > 0) {
+				$scope.dirtyCount = 0;
 				$scope.disableInput = { "Subject": false, "Artist": false, "Copyright": false, "Date": false};  // used to disable inputs for single value fields
 				$scope.selectedItemsData = await executeInContentScript(currentTab, { purpose: "gather-data" });
 				$scope.htmlPhase = 1;
@@ -92,6 +94,7 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			$scope.disableInput[field] = true;
 		}
 		$scope.selectedItemsData[field].Common.push({ "content": "", "status": "add" });
+		$scope.dirtyCount ++;
 	}
 
 	$scope.onRemoveNewValue = function(value, category, field) {
@@ -107,14 +110,17 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			}
 		}
 		$scope.selectedItemsData[field][category].splice($scope.selectedItemsData[field][category].indexOf(value), 1);
+		$scope.dirtyCount --;
 	}
 
 	$scope.onToggleDeleteStatus = function(value, category, field) {
 		const valueIndex = $scope.selectedItemsData[field][category].indexOf(value);
 		if ($scope.selectedItemsData[field][category][valueIndex].status != "delete") {
 			$scope.selectedItemsData[field][category][valueIndex].status = "delete";
+			$scope.dirtyCount ++;
 		} else {
 			$scope.selectedItemsData[field][category][valueIndex].status = "no-change";
+			$scope.dirtyCount --;
 		}
 	}
 

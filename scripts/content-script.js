@@ -178,9 +178,10 @@ async function putDetails(field, userInputData) { // on photo edit DETAILS page
 		let success = false;
 		if (date != "") { // Date value is empty but Phtoprism doesn't allow setting date to nothing'
 			const [, day, month, year] = date.match(/(\d{1,2}) *([a-zA-Z]{3}) *(\d{4})/);
-			success |= await put('day', day);
+			success |= await put('day', day.length == 1 ? '0' + day : day );
 			const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
-			success |= await put('month', indexOf(months, month) + 1);
+			const monthOrdinal = (indexOf(months, month) + 1).toString();
+			success |= await put('month', monthOrdinal.length == 1 ? '0' + monthOrdinal : monthOrdinal);
 			success |= await put('year', year);
 		} else {
 			success = true;

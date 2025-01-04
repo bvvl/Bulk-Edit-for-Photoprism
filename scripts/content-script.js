@@ -105,7 +105,7 @@ function getLabels() { // on photo edit LABELS page
 	for (const labelRow of labelRows) {
 		const labelTextElement = labelRow.querySelector("a");
 		if (labelTextElement) {
-			const labelConfidence = labelRow.querySelectorAll("td").item(2).textContent;
+			const labelConfidence = labelRow.querySelectorAll("td").item(2).textContent.trim();
 			if (labelTextElement && labelConfidence != '0%') {
 				labels.push(labelTextElement.textContent.replace(/\s|\\n?/g, ''));
 			}

@@ -9,9 +9,7 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 		try {
 			$scope.htmlPhase = 0;
 			$scope.dirtyCount = 0;
-			if (!currentTab) {
-				[currentTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-			}
+			[currentTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
 			const isEditable = currentTab.title.includes('PhotoPrism') &&
 				!/(\/folders|\/labels|\/moments|\/people|\/albums|\/calendar)$/.test(currentTab.url);
 			$scope.selectedItemsCount = isEditable ? await executeInContentScript(currentTab, { purpose: "items-count" }) : 0;
@@ -156,15 +154,32 @@ angularModule.controller('batchEditorController', ['$scope', function ($scope) {
 			args,
 			func: (inputType, value) => {
 				try {
-					const form = inputType == 'input-label' ?
-						document.querySelector('#app div.p-tab-photo-labels form') :
-						document.querySelector('#app form.p-form-photo-details-meta');
-					const element = form.__vue__._data.inputs.find((element) =>
-						element.$el.className.includes(inputType),
-					);
-					element.internalValue = value;
+					let input;
+					if (inputType == 'input-label') {
+						const labelRows = document.querySelectorAll('.p-form-photo-labels tbody tr');
+						const newLabel = labelRows[labelRows.length - 1].querySelectorAll('td');
+						input = newLabel[0].querySelector(".input-label input");
+					} else {
+						switch (inputType) {
+							case "input-keywords":
+							case "input-subject":
+								input = document.querySelector(`.p-tab-photo-details .${inputType} textarea`);
+								break;
+							case "input-artist":
+							case "input-copyright":
+							case "input-day":
+							case "input-month":
+							case "input-year":
+								input = document.querySelector(`.p-tab-photo-details .${inputType} input`);
+								break;
+							default:
+								throw `*** putDetails error - unknow field "${inputType}"`;
+						}
+					}
+					input.value = value;
+					input.dispatchEvent(new Event('input', { bubbles: true }));
 				} catch (error) {
-					console.log("*** put for " + inputType + " failed => ", error);
+					console.log("*** (extension.js - executeContentScript()) put for " + inputType + " failed => ", error);
 					return false;
 				}
 				return true;

@@ -15,7 +15,7 @@ async function processMessage(message) {
 	try {
 		switch (message.purpose) {
 			case "items-count":
-				const element = document.querySelector("#t-clipboard > button .count-clipboard");
+				const element = document.querySelector(".clipboard-container .count-clipboard");
 				return element ? itemsCount = parseInt(element.textContent) : 0;
 			case "gather-data":
 				return gatherData();
@@ -33,36 +33,36 @@ async function processMessage(message) {
 ///////////// following functions rely on Photoprism html layout /////////////////////////////////////////////
 
 function isInEditMode() {  // check if row with photo edit details/labels/people selector is visible
-	const selectContainer = document.querySelector("#app div.v-tabs__container");
+	const selectContainer = document.querySelector(".p-photo-edit-dialog");
 	return selectContainer ? !(selectContainer.offsetWidth <= 0 && selectContainer.offsetHeight <= 0) : false;
 }
 
 function getCloseButton() { // from photo edit details/labels/people page
-	return document.querySelector("#app nav.v-toolbar button.action-close");
+	return document.querySelector(".v-toolbar .action-close");
 }
 
 function getNextButton() { // from photo edit details/labels/people page
-	return document.querySelector('#app nav.v-toolbar button.action-next');
+	return document.querySelector('.v-toolbar .action-next');
 }
 
 function getApplyButton() { // from photo edit details page
-	return document.querySelector('#app button.action-apply');
+	return document.querySelector('.action-buttons .action-apply');
 }
 
 function getActionsMenuButton() { // from page with item(s) selected - round button with count at bottom right
-	return document.querySelector("#t-clipboard > button.action-menu");
+	return document.querySelector(".clipboard-container .action-menu");
 }
 
 function getEditButton() { // Edit button in actions menu after count button pressed
-	return document.querySelector("#t-clipboard button.action-edit");
+	return document.querySelector(".clipboard-container .action-edit");
 }
 
 function getDetailsButton() { // from photo edit details/labels/people page
-	return document.querySelector("#tab-details > a.v-tabs__item");
+	return document.querySelector(".v-slide-group__container #tab-details");
 }
 
 function getLabelsButton() { // from photo edit details/labels/people page
-	return document.querySelector("#tab-labels > a.v-tabs__item");
+	return document.querySelector(".v-slide-group__container #tab-labels");
 }
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -75,20 +75,20 @@ function getDetails(field) { // on photo edit DETAILS page
 	let value = [];
 	switch (field) {
 		case "Keywords":
-			const values = document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value.split(/,\s*/);
+			const values = document.querySelector(`.p-tab-photo-details .${input} textarea`).value.split(/,\s*/);
 			return values[0] == '' ? [] : values;
 		case "Date":
-			const day = document.querySelector(`#app div.p-tab-photo-details div.input-day input`).value;
-			const month = document.querySelector(`#app div.p-tab-photo-details div.input-month input`).value;
-			const year = document.querySelector(`#app div.p-tab-photo-details div.input-year input`).value;
+			const day = document.querySelector(`.p-tab-photo-details .input-day input`).value;
+			const month = document.querySelector(`.p-tab-photo-details .input-month input`).value;
+			const year = document.querySelector(`.p-tab-photo-details .input-year input`).value;
 			value = `${day}` + `${months[parseInt(month) - 1]}${year}`
 			break;
 		case "Subject":
-			value = document.querySelector(`#app div.p-tab-photo-details div.${input} textarea`).value;
+			value = document.querySelector(`.p-tab-photo-details .${input} textarea`).value;
 			break;
 		case "Artist":
 		case "Copyright":
-			value = document.querySelector(`#app div.p-tab-photo-details div.${input} input`).value;
+			value = document.querySelector(`.p-tab-photo-details .${input} input`).value;
 			break;
 		default:
 			throw `*** getDetails error - unknow field "${field}"`;
@@ -100,14 +100,14 @@ function getDetails(field) { // on photo edit DETAILS page
 * @return {[string]}
 */
 function getLabels() { // on photo edit LABELS page
-	const labelRows = document.querySelectorAll('#app table.v-datatable tbody tr')
+	const labelRows = document.querySelectorAll('.p-tab-photo-labels tbody tr')
 	let labels = [];
 	for (const labelRow of labelRows) {
-		const labelTextElement = labelRow.querySelector("a");
+		const labelTextElement = labelRow.querySelectorAll("td").item(0).textContent.trim();
 		if (labelTextElement) {
 			const labelConfidence = labelRow.querySelectorAll("td").item(2).textContent.trim();
 			if (labelTextElement && labelConfidence != '0%') {
-				labels.push(labelTextElement.textContent.replace(/\s|\\n?/g, ''));
+				labels.push(labelTextElement.replace(/\\n?/g, ' '));
 			}
 		}
 	}
@@ -115,7 +115,7 @@ function getLabels() { // on photo edit LABELS page
 }
 
 function isPhotoprismStillUpdating() {
-	return document.querySelector("#photoprism > div.v-snack") != null;
+	return document.querySelector('#notify .v-snackbar__content') != null;
 }
 
 ////////////////// put routines /////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ async function putDetails(field, userInputData) { // on photo edit DETAILS page
 				}
 			});
 		} catch (error) {
-			console.log(`*** put() for ${input} failed => `, error);
+			console.log(`*** (content-script.js) put() for ${input} failed => `, error);
 			return false;
 		}
 		return true;
@@ -176,7 +176,7 @@ async function putDetails(field, userInputData) { // on photo edit DETAILS page
 
 	async function putDate(date) {
 		let success = false;
-		if (date != "") { // Date value is empty but Phtoprism doesn't allow setting date to nothing'
+		if (date != "") { // Date value is empty but photoprism doesn't allow setting date to nothing'
 			const [, day, month, year] = date.match(/(\d{1,2}) *([a-zA-Z]{3}) *(\d{4})/);
 			success |= await put('day', day.length == 1 ? '0' + day : day );
 			const indexOf = (arr, q) => arr.findIndex(item => q.toLowerCase() === item.toLowerCase());
@@ -213,12 +213,11 @@ async function putLabels(userInputData) { // on photo edit DETAILS page
 		try {
 			for (const label of labelsToBeDeleted) {
 				const labelRow = findLabelRow(label);
-				const removeButton = labelRow.querySelector("button.action-remove");
-				if (removeButton) { // use of remove or delete depends on how label was created in first place
-					removeButton.click();
-				} else {
-					labelRow.querySelector("button.action-delete").click();
+				let deleteButton = labelRow.querySelector(".action-remove");
+				if (!deleteButton) { // use of remove or delete depends on how label was created in first place
+					deleteButton = labelRow.querySelector(".action-delete");
 				}
+				deleteButton.click();
 			}
 			for (const label of labelsToBeAdded) {
 				await executeInExtension({
@@ -228,7 +227,8 @@ async function putLabels(userInputData) { // on photo edit DETAILS page
 						value: label,
 					}
 				});
-				document.querySelector('#app div.p-tab-photo-labels table.v-datatable tfoot tr button.p-photo-label-add').click();
+				const addButton = document.querySelector('.p-form-photo-labels .p-photo-label-add');
+				addButton.click();
 			}
 		} catch (error) {
 			console.log("*** putLabels() failed => ", error);
@@ -240,10 +240,10 @@ async function putLabels(userInputData) { // on photo edit DETAILS page
 	}
 
 	function findLabelRow(label) {
-		const labelRows = document.querySelectorAll('#app div.p-tab-photo-labels table.v-datatable tbody tr')
+		const labelRows = document.querySelectorAll('.p-form-photo-labels tbody tr');
 		for (const labelRow of labelRows) {
-			const labelTextElement = labelRow.querySelector("a");
-			if (labelTextElement.textContent.replace(/\s|\\n?/g, '') == label) {
+			const labelValue = labelRow.querySelectorAll("td")[0].innerText;
+			if (labelValue.replace(/\\n?/g, '') == label) {
 				return labelRow;
 			}
 		}
@@ -447,6 +447,3 @@ async function executeInExtension(message) {  // pass message to content-script.
 		})
 	})
 }
-
-
-

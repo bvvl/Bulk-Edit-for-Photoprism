@@ -22,10 +22,12 @@
 	"host_permissions": [
 		"http://localhost:2342/library/*"
     ],
+	"content_security_policy": {
+		"extension_pages": "script-src 'self'; object-src 'self'"
+	},
 	"content_scripts": [{
 		"js": ["scripts/content-script.js"],
-		"matches": ["http://localhost:2342/library/*"
-	]
+		"matches": ["http://localhost:2342/library/*"]
 	}],
 	"background": {
 		"service_worker": "scripts/service-worker.js"

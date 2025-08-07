@@ -1,6 +1,8 @@
 # Bulk-Edit-for-Photoprism V2.0
 A chrome extension for modifying Photoprism photo/video metadata - keywords, labels, subject, date, artist and copyright.
+
 This version V2.0 has been updated to work with Photoprism build  250707-d28b3101e.  There were a number of html layout changes that this extension relies on in order to manipultate phtoprism's user interface.
+
 Note: if you have not upgraded Photoprism, you can use the version of this extension in the V1.0 branch.
 # Features
 - launch the extension with 1 or more photos/videos selected either from the select page or inside Photoprism's edit
